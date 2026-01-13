@@ -1,0 +1,11 @@
+# Don't copy these to Docker image
+node_modules/
+.env
+.env.*
+finance.db
+*.log
+.git/
+.gitignore
+README.md
+Dockerfile
+docker-compose.yml

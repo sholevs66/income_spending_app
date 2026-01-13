@@ -1,0 +1,23 @@
+# ===========================================
+# Finance Dashboard - Docker Compose
+# ===========================================
+# 
+# Usage:
+#   docker-compose up -d        # Start the dashboard
+#   docker-compose run app npm run scrape   # Scrape bank data
+#   docker-compose down         # Stop
+#
+# ===========================================
+
+services:
+  app:
+    build: .
+    container_name: finance-dashboard
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist database outside container
+      - ./finance.db:/app/finance.db
+    env_file:
+      - .env
+    restart: unless-stopped

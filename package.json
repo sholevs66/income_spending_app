@@ -1,0 +1,21 @@
+{
+  "name": "income_spending_app",
+  "version": "1.0.0",
+  "description": "Personal finance dashboard for Israeli banks",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "scrape": "node scrape.js"
+  },
+  "keywords": ["finance", "israeli-banks", "budget"],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "israeli-bank-scrapers": "^6.6.0"
+  }
+}

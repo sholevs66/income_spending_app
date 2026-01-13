@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1>💰 המצב הכספי</h1>
+      <p class="subtitle">Israeli-style monthly balance</p>
+    </header>
+
+    <!-- Month Selector -->
+    <nav class="month-nav">
+      <button class="nav-btn" id="prevMonth">
+        <span class="arrow">→</span>
+      </button>
+      <div class="month-display">
+        <span class="month-name" id="monthName">Loading...</span>
+        <span class="month-year" id="monthYear"></span>
+      </div>
+      <button class="nav-btn" id="nextMonth">
+        <span class="arrow">←</span>
+      </button>
+    </nav>
+
+    <!-- Year-to-Date Summary -->
+    <section class="ytd-card" id="ytdCard">
+      <div class="ytd-header">
+        <span class="ytd-title">📅 סיכום שנתי <span id="ytdYear">2025</span></span>
+      </div>
+      <div class="ytd-content">
+        <div class="ytd-item income">
+          <span class="ytd-label">הכנסות</span>
+          <span class="ytd-value" id="ytdIncome">₪0</span>
+        </div>
+        <div class="ytd-item expenses">
+          <span class="ytd-label">הוצאות</span>
+          <span class="ytd-value" id="ytdExpenses">₪0</span>
+        </div>
+        <div class="ytd-item balance">
+          <span class="ytd-label">יתרה</span>
+          <span class="ytd-value" id="ytdBalance">₪0</span>
+        </div>
+        <div class="ytd-item investment" id="ytdInvestmentItem">
+          <span class="ytd-label">השקעות</span>
+          <span class="ytd-value" id="ytdInvestment">₪0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Savings Goal Card -->
+    <section class="savings-card" id="savingsCard">
+      <div class="savings-settings">
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-icon">💰</span>
+            <span class="setting-label">הכנסה צפויה</span>
+          </div>
+          <div class="setting-value">
+            <span id="expectedIncomeAmount">₪0</span>
+            <button class="edit-setting-btn" onclick="editExpectedIncome()">✏️</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-icon">🎯</span>
+            <span class="setting-label">יעד חיסכון</span>
+          </div>
+          <div class="setting-value">
+            <span id="savingsGoalAmount">₪0</span>
+            <button class="edit-setting-btn" onclick="editSavingsGoal()">✏️</button>
+          </div>
+        </div>
+      </div>
+      <div class="budget-breakdown" id="budgetBreakdown">
+        <!-- Budget breakdown will be inserted here -->
+      </div>
+      <div class="variable-budget" id="variableBudget">
+        <!-- Variable budget display -->
+      </div>
+    </section>
+
+    <!-- Balance Card -->
+    <main class="balance-card">
+      <button class="exclude-month-btn" onclick="excludeAllMonth()" title="הוצא את כל התנועות מחישוב היתרה">
+        🚫 הוצא חודש מהחישוב
+      </button>
+      <div class="balance-row income">
+        <span class="label">הכנסות</span>
+        <span class="value" id="income">₪0</span>
+      </div>
+      
+      <div class="balance-row expenses">
+        <span class="label">הוצאות</span>
+        <span class="value" id="expenses">₪0</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="balance-row total" id="balanceRow">
+        <span class="label">יתרה</span>
+        <span class="value" id="balance">₪0</span>
+      </div>
+
+      <div class="balance-indicator" id="indicator">
+        <span class="indicator-text" id="indicatorText"></span>
+      </div>
+    </main>
+
+    <!-- Categories Summary -->
+    <section class="categories-section">
+      <div class="section-header">
+        <h2>📂 לפי קטגוריות</h2>
+        <div class="header-buttons">
+          <button class="add-btn" onclick="showManageCategoriesModal()">⚙️ ניהול</button>
+          <button class="add-btn" onclick="showCategoryModal()">+ חדש</button>
+        </div>
+      </div>
+      <div class="categories-summary" id="categoriesSummary">
+        <!-- Categories will be inserted here -->
+      </div>
+    </section>
+
+    <!-- Transactions List -->
+    <section class="transactions">
+      <h2>פירוט תנועות</h2>
+      <div class="transaction-list" id="transactionList">
+        <!-- Transactions will be inserted here -->
+      </div>
+    </section>
+
+    <!-- Investments Section -->
+    <section class="investment-section" id="investmentSection">
+      <div class="section-header">
+        <h2>📈 השקעות</h2>
+        <span class="investment-summary" id="investmentSummary">₪0</span>
+      </div>
+      <p class="investment-note">סכומים אלו לא נכללים בחישוב היתרה - הם נצברים בנפרד</p>
+      <div class="investment-list" id="investmentList">
+        <!-- Investment transactions will be inserted here -->
+      </div>
+    </section>
+
+    <!-- Excluded from Balance Section -->
+    <section class="excluded-section" id="excludedSection">
+      <div class="section-header">
+        <h2>🚫 לא בחישוב היתרה</h2>
+        <span class="excluded-summary" id="excludedSummary">₪0</span>
+      </div>
+      <p class="excluded-note">תנועות אלו לא נכללות בחישוב ההכנסות וההוצאות</p>
+      <div class="excluded-list" id="excludedList">
+        <!-- Excluded transactions will be inserted here -->
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p><span id="txnCount">0</span> תנועות בחודש זה</p>
+    </footer>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal-overlay" id="categoryModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>קטגוריה חדשה</h3>
+        <button class="close-btn" onclick="hideCategoryModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="categoryName" placeholder="שם הקטגוריה" />
+        <div class="color-picker">
+          <span class="color-option" style="background: #ef4444" data-color="#ef4444"></span>
+          <span class="color-option" style="background: #f97316" data-color="#f97316"></span>
+          <span class="color-option" style="background: #eab308" data-color="#eab308"></span>
+          <span class="color-option" style="background: #22c55e" data-color="#22c55e"></span>
+          <span class="color-option" style="background: #06b6d4" data-color="#06b6d4"></span>
+          <span class="color-option selected" style="background: #6366f1" data-color="#6366f1"></span>
+          <span class="color-option" style="background: #a855f7" data-color="#a855f7"></span>
+          <span class="color-option" style="background: #ec4899" data-color="#ec4899"></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideCategoryModal()">ביטול</button>
+        <button class="btn btn-primary" onclick="createCategory()">צור קטגוריה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Details Modal -->
+  <div class="modal-overlay" id="categoryDetailsModal" onclick="if(event.target === this) hideCategoryDetailsModal()">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h3 id="categoryDetailsTitle">קטגוריה</h3>
+        <button class="close-btn" onclick="hideCategoryDetailsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="category-details-summary" id="categoryDetailsSummary"></div>
+        <div class="category-details-list" id="categoryDetailsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Categories Modal -->
+  <div class="modal-overlay" id="manageCategoriesModal" onclick="if(event.target === this) hideManageCategoriesModal()">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h3>⚙️ ניהול קטגוריות</h3>
+        <button class="close-btn" onclick="hideManageCategoriesModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="manage-note">מחיקת קטגוריה תסיר את התיוג מכל התנועות המשויכות אליה</p>
+        <div class="manage-categories-list" id="manageCategoriesList">
+          <!-- Categories will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
