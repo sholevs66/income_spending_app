@@ -33,12 +33,12 @@ cd income_spending_app
 npm install
 
 # Create environment file
-cp .env.example .env
+touch .env
 ```
 
 ### Configuration
 
-Edit `.env` with your credentials:
+Create a `.env` file with your credentials:
 
 ```env
 # Bank Hapoalim
