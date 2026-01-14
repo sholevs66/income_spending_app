@@ -29,6 +29,18 @@ const BANKS = [
     },
     enabled: !!(process.env.CAL_USER && process.env.CAL_PASS),
   },
+  // Isracard - disabled due to anti-bot blocking (status 429)
+  // Uncomment when israeli-bank-scrapers fixes the issue
+  // {
+  //   name: 'Isracard',
+  //   companyId: CompanyTypes.isracard,
+  //   credentials: {
+  //     id: process.env.ISRACARD_ID,
+  //     card6Digits: process.env.ISRACARD_CARD6,
+  //     password: process.env.ISRACARD_PASS,
+  //   },
+  //   enabled: !!(process.env.ISRACARD_ID && process.env.ISRACARD_CARD6 && process.env.ISRACARD_PASS),
+  // },
 ];
 
 // ===========================================
