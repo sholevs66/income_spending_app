@@ -59,6 +59,9 @@ try {
 try {
   db.exec(`ALTER TABLE transactions ADD COLUMN user_comment TEXT`);
 } catch (e) { /* column already exists */ }
+try {
+  db.exec(`ALTER TABLE transactions ADD COLUMN is_occasional_income INTEGER DEFAULT 0`);
+} catch (e) { /* column already exists */ }
 
 // Create index on category_id (after column exists)
 try {
@@ -527,6 +530,14 @@ function setTransactionInvestment(transactionId, isInvestment) {
 }
 
 /**
+ * Mark/unmark a transaction as occasional income (gift, tax return, etc.)
+ */
+function setTransactionOccasionalIncome(transactionId, isOccasional) {
+  const stmt = db.prepare('UPDATE transactions SET is_occasional_income = ? WHERE id = ?');
+  stmt.run(isOccasional ? 1 : 0, transactionId);
+}
+
+/**
  * Get category average over last N months (excluding current month)
  */
 function getCategoryAverage(categoryId, currentYear, currentMonth, numMonths = 3) {
@@ -650,9 +661,10 @@ function setExpectedIncome(amount) {
 }
 
 /**
- * Calculate average income from last N months
+ * Calculate average REGULAR income from last N months
+ * Excludes occasional income (gifts, tax returns, etc.)
  */
-function getAverageIncome(currentYear, currentMonth, numMonths = 3) {
+function getAverageRegularIncome(currentYear, currentMonth, numMonths = 3) {
   const incomes = [];
   
   let year = currentYear;
@@ -666,8 +678,16 @@ function getAverageIncome(currentYear, currentMonth, numMonths = 3) {
     }
     
     const summary = getMonthlySummary(year, month);
-    if (summary.income > 0) {
-      incomes.push(summary.income);
+    // Calculate regular income (exclude occasional)
+    let regularIncome = 0;
+    for (const txn of summary.transactions) {
+      if (txn.amount > 0 && !txn.is_occasional_income) {
+        regularIncome += txn.amount;
+      }
+    }
+    
+    if (regularIncome > 0) {
+      incomes.push(regularIncome);
     }
   }
   
@@ -677,13 +697,52 @@ function getAverageIncome(currentYear, currentMonth, numMonths = 3) {
 }
 
 /**
+ * Get actual occasional income for a specific month
+ */
+function getOccasionalIncomeForMonth(year, month) {
+  const summary = getMonthlySummary(year, month);
+  let occasionalIncome = 0;
+  
+  for (const txn of summary.transactions) {
+    if (txn.amount > 0 && txn.is_occasional_income) {
+      occasionalIncome += txn.amount;
+    }
+  }
+  
+  return occasionalIncome;
+}
+
+/**
+ * Get regular income for a specific month (excludes occasional)
+ */
+function getRegularIncomeForMonth(year, month) {
+  const summary = getMonthlySummary(year, month);
+  let regularIncome = 0;
+  
+  for (const txn of summary.transactions) {
+    if (txn.amount > 0 && !txn.is_occasional_income) {
+      regularIncome += txn.amount;
+    }
+  }
+  
+  return regularIncome;
+}
+
+// Keep old function for backwards compatibility
+function getAverageIncome(currentYear, currentMonth, numMonths = 3) {
+  return getAverageRegularIncome(currentYear, currentMonth, numMonths);
+}
+
+/**
  * Calculate available budget for variable expenses
  * 
  * Formula:
  * Available = Expected Income - Savings Goal - Fixed Expenses
  * 
  * Where:
- * - Expected Income = MAX(actual income, user expected income, average income)
+ * - Expected Income = MAX(actual regular income, user expected income, average regular income) + actual occasional income
+ * - Regular income = salary (excluding gifts, tax returns, etc.)
+ * - Occasional income = gifts, tax returns, etc. (only included if already received this month)
  * - Fixed Expenses for each category (except הוצאות משתנות):
  *   Use MAX(actual spending this month, 3-month average)
  */
@@ -692,14 +751,23 @@ function calculateAvailableBudget(year, month) {
   const averages = getAllCategoryAverages(year, month);
   const savingsGoal = getSavingsGoal(year, month);
   
-  // Calculate expected income
-  const actualIncome = summary.income;
-  const userExpectedIncome = getExpectedIncome();
-  const averageIncome = getAverageIncome(year, month, 3);
+  // Calculate regular income (excluding occasional)
+  const actualRegularIncome = getRegularIncomeForMonth(year, month);
+  const userExpectedIncome = getExpectedIncome();  // User's expected regular salary
+  const averageRegularIncome = getAverageRegularIncome(year, month, 3);
   
-  // Use the highest of: actual, user expected, or average
-  const expectedIncome = Math.max(actualIncome, userExpectedIncome, averageIncome);
+  // Get actual occasional income received this month
+  const actualOccasionalIncome = getOccasionalIncomeForMonth(year, month);
+  
+  // Expected regular income = MAX(actual regular, user expected, average regular)
+  const expectedRegularIncome = Math.max(actualRegularIncome, userExpectedIncome, averageRegularIncome);
+  
+  // Total expected income = expected regular + actual occasional (only what we've already received)
+  const expectedIncome = expectedRegularIncome + actualOccasionalIncome;
   const income = expectedIncome;
+  
+  // Total actual income for display purposes
+  const actualIncome = summary.income;  // This includes both regular and occasional
   
   // Find the variable expenses category ID
   const variableCategory = getCategories().find(c => c.name === 'הוצאות משתנות');
@@ -731,8 +799,11 @@ function calculateAvailableBudget(year, month) {
     income,
     actualIncome,
     expectedIncome,
+    expectedRegularIncome,
+    actualRegularIncome,
+    actualOccasionalIncome,
     userExpectedIncome,
-    averageIncome,
+    averageIncome: averageRegularIncome,
     savingsGoal,
     fixedExpenses,
     availableForVariable,
@@ -821,6 +892,7 @@ module.exports = {
   redetectTransfers,
   getYearToDateSummary,
   setTransactionInvestment,
+  setTransactionOccasionalIncome,
   applyCategoryRules,
   getCategoryRules,
   excludeAllInMonth,
@@ -832,5 +904,7 @@ module.exports = {
   getExpectedIncome,
   setExpectedIncome,
   getAverageIncome,
+  getAverageRegularIncome,
+  getOccasionalIncomeForMonth,
   calculateAvailableBudget,
 };

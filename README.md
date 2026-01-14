@@ -121,6 +121,101 @@ income_spending_app/
 - Investment tracking
 - Personal comments
 
+## 🎛️ Transaction Buttons & Their Effects
+
+Each transaction has action buttons that affect how it's counted in calculations:
+
+### 🎁 Occasional Income Button (Income only)
+Marks income as **non-recurring** (gifts, tax returns, bonuses, grandmother's money).
+
+| Effect | Description |
+|--------|-------------|
+| **Expected Income** | Excluded from 3-month salary average |
+| **Current Month** | Still counted in this month's income |
+| **Next Month** | Won't inflate expected income predictions |
+
+**Example:** You get ₪13,000 salary + ₪500 gift from grandma
+- Mark the ₪500 as 🎁
+- This month's expected income = ₪13,500 (salary average + actual gift)
+- Next month's expected income = ₪13,000 (only salary average)
+
+### 📈 Investment Button (סמן כהשקעה)
+Marks a transaction as an **investment** (stocks, savings, pension contributions).
+
+| Effect | Description |
+|--------|-------------|
+| **Monthly Balance** | Not counted as expense or income |
+| **YTD Summary** | Tracked separately in "השקעות" |
+| **Categories** | Removed from category calculations |
+| **Averages** | Not included in expense averages |
+
+**Use for:** Stock purchases, pension funds, savings deposits, crypto buys
+
+### ⊘ Exclude Button (הוצא מחישוב היתרה)
+Removes a transaction from **all balance calculations**.
+
+| Effect | Description |
+|--------|-------------|
+| **Monthly Balance** | Completely excluded |
+| **YTD Summary** | Completely excluded |
+| **Categories** | Not counted |
+| **Averages** | Not included |
+
+**Use for:**
+- Internal transfers between your own accounts
+- Credit card lump sums (when you have detailed CC transactions)
+- Months with incomplete data
+- Duplicate transactions
+
+**Tip:** Use "Exclude All Month" button to exclude all transactions in months where bank data is incomplete.
+
+## 📈 Average & Budget Calculations
+
+### Expected Income Calculation
+
+```
+Expected Income = MAX(Actual Regular Income, User Set Amount, 3-Month Average) 
+                + Actual Occasional Income This Month
+```
+
+| Component | Description |
+|-----------|-------------|
+| **Regular Income** | Salary (excluding 🎁 marked items) |
+| **3-Month Average** | Average of regular income from last 3 months |
+| **User Set Amount** | Manual override (edit ✏️ button) |
+| **Occasional Income** | Only actual 🎁 items received this month |
+
+### Category Expense Averages
+
+For each category, the app calculates a **3-month moving average** of expenses.
+
+```
+Category Average = SUM(expenses in last 3 months) / months with data
+```
+
+- Empty months are excluded from the average
+- Shows as progress bar: 🟢 <80% | 🟡 80-100% | 🔴 >100%
+- "הוצאות משתנות" and "ללא קטגוריה" don't show averages
+
+### Budget for Variable Expenses
+
+```
+Available for Variables = Expected Income 
+                        - Savings Goal 
+                        - Fixed Expenses (MAX of actual or average per category)
+```
+
+| Step | Calculation |
+|------|-------------|
+| 1. Expected Income | As calculated above |
+| 2. Minus Savings Goal | Your monthly target |
+| 3. Minus Fixed Expenses | For each category: MAX(actual this month, 3-month average) |
+| 4. = Budget for Variables | What you can spend on "הוצאות משתנות" |
+| 5. Minus Already Spent | What you've spent on "הוצאות משתנות" |
+| 6. = Still Available | What's left to spend |
+
+**Why MAX(actual, average)?** To be conservative - if you already spent more than average in a category, we use the actual amount; if you spent less, we assume you'll spend the average by month end.
+
 ## 🔒 Security
 
 - All credentials stored in `.env` (never committed)

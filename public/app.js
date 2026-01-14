@@ -138,6 +138,14 @@ async function apiSetComment(txnId, comment) {
   });
 }
 
+async function apiToggleOccasionalIncome(txnId, isOccasional) {
+  await fetch(`${API_BASE}/api/transactions/occasional-income`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transactionId: txnId, isOccasional }),
+  });
+}
+
 // ===========================================
 // Formatting
 // ===========================================
@@ -187,17 +195,40 @@ async function updateSavingsCard() {
   expectedIncomeEl.textContent = formatCurrency(budget.expectedIncome);
   goalEl.textContent = formatCurrency(budget.savingsGoal);
   
-  // Show breakdown
-  const actualNote = budget.actualIncome < budget.expectedIncome 
-    ? `<div class="breakdown-note">הכנסה בפועל: ${formatCurrency(budget.actualIncome)}</div>` 
-    : '';
+  // Show breakdown with regular vs occasional income
+  const hasOccasional = budget.actualOccasionalIncome > 0;
+  
+  // Determine regular income source
+  let regularIncomeSource = '';
+  if (budget.actualRegularIncome >= budget.expectedRegularIncome) {
+    regularIncomeSource = ' (בפועל)';
+  } else if (budget.userExpectedIncome >= budget.averageIncome) {
+    regularIncomeSource = ' (ידני)';
+  } else {
+    regularIncomeSource = ' (ממוצע)';
+  }
+  
+  // Income breakdown HTML
+  let incomeBreakdownHtml = '';
+  if (hasOccasional) {
+    incomeBreakdownHtml = `
+      <div class="breakdown-row sub">
+        <span>↳ הכנסה קבועה (משכורת)${regularIncomeSource}</span>
+        <span>${formatCurrency(budget.expectedRegularIncome)}</span>
+      </div>
+      <div class="breakdown-row sub">
+        <span>↳ הכנסה חד פעמית 🎁</span>
+        <span>${formatCurrency(budget.actualOccasionalIncome)}</span>
+      </div>
+    `;
+  }
   
   breakdownEl.innerHTML = `
     <div class="breakdown-row">
-      <span>הכנסה צפויה${incomeSource}</span>
+      <span>הכנסה צפויה כוללת</span>
       <span>${formatCurrency(budget.expectedIncome)}</span>
     </div>
-    ${actualNote}
+    ${incomeBreakdownHtml}
     <div class="breakdown-row">
       <span>יעד חיסכון</span>
       <span class="minus">-${formatCurrency(budget.savingsGoal)}</span>
@@ -472,6 +503,21 @@ async function toggleInvestmentByIndex(index) {
   await toggleInvestment(txn.id);
 }
 
+async function toggleOccasionalIncome(txnId, currentState) {
+  try {
+    await apiToggleOccasionalIncome(txnId, !currentState);
+    await loadMonth(currentYear, currentMonth);
+  } catch (error) {
+    console.error('Failed to toggle occasional income:', error);
+  }
+}
+
+async function toggleOccasionalByIndex(index) {
+  const txn = window.currentTransactions[index];
+  if (!txn) return;
+  await toggleOccasionalIncome(txn.id, txn.is_occasional_income);
+}
+
 async function updateCategoriesSummary(summary) {
   const container = document.getElementById('categoriesSummary');
   
@@ -660,6 +706,7 @@ function updateTransactionList(transactions) {
   listEl.innerHTML = sorted.map((txn, index) => {
     const amountClass = txn.amount >= 0 ? 'positive' : 'negative';
     const amountPrefix = txn.amount >= 0 ? '+' : '';
+    const isIncome = txn.amount > 0;
     
     // Build category select options
     const categoryOptions = categories.map(c => 
@@ -677,11 +724,20 @@ function updateTransactionList(transactions) {
          </div>`
       : `<button class="add-comment-btn" onclick="editCommentByIndex(${index})">+ הוסף הערה</button>`;
     
+    // Occasional income button (only for income transactions)
+    const occasionalBtnClass = txn.is_occasional_income ? 'active' : '';
+    const occasionalBtn = isIncome 
+      ? `<button class="occasional-btn ${occasionalBtnClass}" onclick="toggleOccasionalByIndex(${index})" title="הכנסה לא קבועה (מתנה, החזר מס...)">
+          🎁
+        </button>`
+      : '';
+    
     return `
-      <div class="transaction-item" data-index="${index}">
+      <div class="transaction-item ${txn.is_occasional_income ? 'occasional' : ''}" data-index="${index}">
         <div class="transaction-info">
           <div class="transaction-header">
             <span class="transaction-desc">${txn.description || 'תנועה'}</span>
+            ${occasionalBtn}
             <button class="invest-btn" onclick="toggleInvestmentByIndex(${index})" title="סמן כהשקעה">
               📈
             </button>

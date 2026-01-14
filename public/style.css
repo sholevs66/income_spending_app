@@ -281,6 +281,12 @@ body {
   color: var(--text-primary);
 }
 
+.breakdown-row.sub {
+  font-size: 0.8rem;
+  padding: 2px 0;
+  color: var(--text-muted);
+}
+
 .breakdown-row .minus {
   color: var(--accent-red);
 }
@@ -842,6 +848,40 @@ body {
   background: rgba(156, 39, 176, 0.15);
   border-color: #9c27b0;
   color: #9c27b0;
+}
+
+/* Occasional Income Button */
+.occasional-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.occasional-btn:hover {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.occasional-btn.active {
+  background: rgba(255, 193, 7, 0.25);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+/* Transaction marked as occasional income */
+.transaction-item.occasional {
+  border-right: 3px solid #ffc107;
 }
 
 .transaction-category {

@@ -198,6 +198,23 @@ app.post('/api/transactions/investment', (req, res) => {
 });
 
 /**
+ * Mark transaction as occasional income (gift, tax return, etc.)
+ */
+app.post('/api/transactions/occasional-income', (req, res) => {
+  try {
+    const { transactionId, isOccasional } = req.body;
+    if (!transactionId) {
+      return res.status(400).json({ error: 'Transaction ID required' });
+    }
+    db.setTransactionOccasionalIncome(transactionId, isOccasional);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error setting occasional income:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * Exclude all transactions in a month from balance
  */
 app.post('/api/exclude-month', (req, res) => {
