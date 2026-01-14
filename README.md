@@ -4,6 +4,8 @@ A self-hosted personal finance dashboard that scrapes Israeli bank accounts and 
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+![Dashboard Screenshot](screenshot.png)
+
 ## ✨ Features
 
 - **🏦 Bank Scraping** - Automatic data fetching from Israeli banks (Hapoalim, Visa Cal, Isracard)
